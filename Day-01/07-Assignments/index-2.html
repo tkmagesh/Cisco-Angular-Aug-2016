@@ -23,7 +23,7 @@
 			this.result = this.number1 / this.number2;
 		};
 		angular
-			.module("ng")
+			.module("myApp", [])
 			.run(function($rootScope){
 				$rootScope.calculator = new MathCalculator();
 				$rootScope.operation = '';
@@ -35,7 +35,7 @@
 	</script>
 
 </head>
-<body ng-app>
+<body ng-app="myApp">
 	<h1>Calculator</h1>
 	<div class="content">
 		<input type="number" ng-model="calculator.number1">
