@@ -44,8 +44,22 @@
 		5. Display statistics (# of closed bugs / # of total bugs) - done
 		6. Search the bugs - done
 		7. Sort the bugs - done
-		8. Improvise the bug display
+		8. Improvise the bug display - done
 		9. Persist the bugs in the localStorage
+			window.localStorage
+			===================
+				- key/value store
+				- key has to be unique
+				- value has to be string
+					angular.toJson() and angular.fromJson()
+				APIs
+					* setItem(key, value)
+					* getItem(key) //=> value
+					* removeItem(key)
+					* key(index) //=> key at index
+					* clear()
+					* length
+
 		10. Display 'createdAt' for every bug
 		11. Persist the bugs in the server
 		12. Make the bugs accessible using a unique url
@@ -74,12 +88,7 @@
 		});
 
 		bugTrackerApp.controller("bugsController", function($scope, bugOperations){
-			$scope.bugs = [
-				bugOperations.createNew("Server communication failure"),
-				bugOperations.createNew("User actions not recognized"),
-				bugOperations.createNew("Unable to add a new bug"),
-				bugOperations.createNew("This is a really long title for a bug created to mess up the display"),
-			];
+			$scope.bugs = [];
 			
 			$scope.newBug = '';
 			
@@ -93,13 +102,7 @@
 				bugOperations.toggle(bug);
 			};
 
-			$scope.getClosedCount = function(){
-				var result = 0;
-				for(var i = 0; i < $scope.bugs.length; i++)
-					if ($scope.bugs[i].isClosed)
-						++result;
-				return result;
-			};
+			
 
 			$scope.removeClosed = function(){
 				for(var i = $scope.bugs.length-1; i >= 0 ; i--)
@@ -108,7 +111,26 @@
 			}
 		});
 
-		
+		bugTrackerApp.value("defaultTrimLength", 30);
+
+		bugTrackerApp.filter("trimText", function(defaultTrimLength){
+			return function(data, trimLength){
+				trimLength = trimLength || defaultTrimLength;
+				return data.length > trimLength ? data.substr(0,trimLength) + '...' : data;
+			}
+		});
+
+		bugTrackerApp.filter('toClosedCount', function(){
+			return function(bugs){
+				var result = 0;
+				for(var i = 0; i < bugs.length; i++)
+					if (bugs[i].isClosed)
+						++result;
+				return result;
+			}
+			
+		})
+
 
 	</script>
 </head>
@@ -117,7 +139,7 @@
 	<hr>
 	<section class="content" ng-controller="bugsController">
 		<section class="stats">
-			<span class="closed">{{getClosedCount()}}</span>
+			<span class="closed">{{bugs | toClosedCount}}</span>
 			<span> / </span>
 			<span>{{bugs.length}}</span>
 		</section>
@@ -148,7 +170,7 @@
 			<ol>
 				<li ng-repeat="bug in (bugs | filter:searchBug | orderBy:sortBugBy:sortBugDescending)">
 					<span class="bugname" ng-click="toggle(bug)" ng-class="{closed : bug.isClosed}">
-						{{bug.title}}
+						{{bug.title | trimText}}
 					</span>
 					<div>[{{bug.id}}]</div>
 				</li>
