@@ -55,7 +55,9 @@
 	<script>
 		var bugTrackerApp = angular.module("bugTrackerApp", []);
 
-		function createBugOperations(){
+		bugTrackerApp.value("defaultBugName" , '[Default bug]');
+		
+		bugTrackerApp.factory('bugOperations', function(defaultBugName){
 			var maxBugId = 0;
 			return {
 				toggle : function(bug){
@@ -64,14 +66,12 @@
 				createNew : function(newBugName){
 					return {
 						id : ++maxBugId,
-						title : newBugName || '[Default bug]',
+						title : newBugName || defaultBugName,
 						isClosed : false
 					}
 				}
 			}
-		}
-
-		bugTrackerApp.value('bugOperations', createBugOperations());
+		});
 
 		bugTrackerApp.controller("bugsController", function($scope, bugOperations){
 			$scope.bugs = [
