@@ -51,15 +51,34 @@
 		12. Make the bugs accessible using a unique url
 		*/
 	</script>
+	<script src="angular.js"></script>
+	<script>
+		var bugTrackerApp = angular.module("bugTrackerApp", []);
+		bugTrackerApp.controller("bugsController", function($scope){
+			$scope.bugs = [
+				"Server communication failure",
+				"User actions not recognized",
+				"Unable to add a new bug"
+			];
+			
+			$scope.newBug = '';
+			
+			$scope.addNew = function(){
+				$scope.bugs.push($scope.newBug);
+				$scope.newBug = '';
+			};
+		});
+
+	</script>
 </head>
-<body>
+<body ng-app="bugTrackerApp">
 	<h1>Bug Tracker</h1>
 	<hr>
-	<section class="content">
+	<section class="content" ng-controller="bugsController">
 		<section class="stats">
 			<span class="closed">3</span>
 			<span> / </span>
-			<span>5</span>
+			<span>{{bugs.length}}</span>
 		</section>
 		<section class="search">
 			<label for="">Search :</label>
@@ -76,13 +95,14 @@
 		</section>
 		<section class="edit">
 			<label for="">Bug :</label>
-			<input type="text" name="" id="">
-			<input type="button" value="Add New">
+			<input type="text" ng-model="newBug">
+			<input type="button" value="Add New" ng-click="addNew()">
 		</section>
 		<section class="list">
 			<ol>
-				<li><span class="bugname">This is a sample bug - 1</span></li>
-				<li><span class="bugname closed">This is a sample bug - 2</span></li>
+				<li ng-repeat="bug in bugs">
+					<span class="bugname">{{bug}}</span>
+				</li>
 			</ol>
 			<input type="button" value="Remove Closed">
 		</section>
