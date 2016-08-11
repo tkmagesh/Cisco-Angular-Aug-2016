@@ -67,19 +67,29 @@
 	</script>
 	<script src="angular.js"></script>
 	<script>
-		var bugTrackerApp = angular.module("bugTrackerApp", []);
+		var utils = angular.module("utils", []);
+		utils.value("defaultTrimLength", 30);
+
+		utils.filter("trimText", function(defaultTrimLength){
+			return function(data, trimLength){
+				trimLength = trimLength || defaultTrimLength;
+				return data.length > trimLength ? data.substr(0,trimLength) + '...' : data;
+			}
+		});
+
+		var bugTrackerApp = angular.module("bugTrackerApp", ["utils"]);
 
 		bugTrackerApp.value("defaultBugName" , '[Default bug]');
 		
 		bugTrackerApp.factory('bugOperations', function(defaultBugName){
-			var maxBugId = 0;
+			
 			return {
 				toggle : function(bug){
 					bug.isClosed = !bug.isClosed
 				},
-				createNew : function(newBugName){
+				createNew : function(id, newBugName){
 					return {
-						id : ++maxBugId,
+						id : id,
 						title : newBugName || defaultBugName,
 						isClosed : false
 					}
@@ -87,42 +97,106 @@
 			}
 		});
 
-		bugTrackerApp.controller("bugsController", function($scope, bugOperations){
-			$scope.bugs = [];
+		/*bugTrackerApp.factory("bugStorage", function(bugOperations){
+			var maxBugId = 0,
+				storage = window.localStorage;
+
+			function getAllBugs(){
+				var result = [];
+				for(var i=0; i< storage.length;i++){
+					var dataAsStr = storage.getItem(storage.key(i));
+					var bug = angular.fromJson(dataAsStr);
+					result.push(bug);
+					maxBugId = maxBugId > bug.id ? maxBugId : bug.id;
+				}
+				return result;
+			}
+			function addNewBug(bugName){
+				var newBug = bugOperations.createNew(++maxBugId, bugName);
+				saveBug(newBug);
+				return newBug;
+			}
+			function saveBug(bug){
+				storage.setItem(bug.id, angular.toJson(bug));
+			}
+			function toggleBug(bug){
+				bugOperations.toggle(bug);
+				saveBug(bug);
+			}
+			function removeBug(bug){
+				storage.removeItem(bug.id);
+			}
+			return {
+				getAll : getAllBugs,
+				addNew : addNewBug,
+				toggle : toggleBug,
+				remove : removeBug
+			}
+		})*/
+		bugTrackerApp.service("bugStorage", function(bugOperations){
+			var maxBugId = 0,
+				storage = window.localStorage;
+
+			this.getAll = function getAllBugs(){
+				var result = [];
+				for(var i=0; i< storage.length;i++){
+					var dataAsStr = storage.getItem(storage.key(i));
+					var bug = angular.fromJson(dataAsStr);
+					result.push(bug);
+					maxBugId = maxBugId > bug.id ? maxBugId : bug.id;
+				}
+				return result;
+			}
+			this.addNew = function addNewBug(bugName){
+				var newBug = bugOperations.createNew(++maxBugId, bugName);
+				saveBug(newBug);
+				return newBug;
+			}
+			function saveBug(bug){
+				storage.setItem(bug.id, angular.toJson(bug));
+			}
+			this.toggle = function toggleBug(bug){
+				bugOperations.toggle(bug);
+				saveBug(bug);
+			}
+			this.remove = function removeBug(bug){
+				storage.removeItem(bug.id);
+			}
+			
+		})
+
+		bugTrackerApp.controller("bugsController", function($scope, bugStorage){
+			$scope.bugs = bugStorage.getAll();
 			
 			$scope.newBug = '';
 			
 			$scope.addNew = function(){
-				var newBugObj = bugOperations.createNew($scope.newBug);
+				var newBugObj = bugStorage.addNew($scope.newBug);
 				$scope.bugs.push(newBugObj);
 				$scope.newBug = '';
 			};
 
 			$scope.toggle = function(bug){
-				bugOperations.toggle(bug);
+				bugStorage.toggle(bug);
 			};
 
 			
 
 			$scope.removeClosed = function(){
 				for(var i = $scope.bugs.length-1; i >= 0 ; i--)
-					if ($scope.bugs[i].isClosed)
+					if ($scope.bugs[i].isClosed){
+						bugStorage.remove($scope.bugs[i]);
 						$scope.bugs.splice(i,1);
+					}
 			}
 		});
 
-		bugTrackerApp.value("defaultTrimLength", 30);
-
-		bugTrackerApp.filter("trimText", function(defaultTrimLength){
-			return function(data, trimLength){
-				trimLength = trimLength || defaultTrimLength;
-				return data.length > trimLength ? data.substr(0,trimLength) + '...' : data;
-			}
-		});
+		
 
 		bugTrackerApp.filter('toClosedCount', function(){
 			return function(bugs){
 				var result = 0;
+					
 				for(var i = 0; i < bugs.length; i++)
 					if (bugs[i].isClosed)
 						++result;
@@ -169,6 +243,7 @@
 		<section class="list">
 			<ol>
 				<li ng-repeat="bug in (bugs | filter:searchBug | orderBy:sortBugBy:sortBugDescending)">
+
 					<span class="bugname" ng-click="toggle(bug)" ng-class="{closed : bug.isClosed}">
 						{{bug.title | trimText}}
 					</span>
