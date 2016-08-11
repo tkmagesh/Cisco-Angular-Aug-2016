@@ -37,8 +37,8 @@
 		/*
 		Use Cases
 		=========
-		1. Add a new bug
-		2. List the bugs
+		1. Add a new bug - done
+		2. List the bugs - done
 		3. Toggle the 'closed' status of a bug
 		4. Remove closed bugs
 		5. Display statistics (# of closed bugs / # of total bugs)
@@ -56,16 +56,24 @@
 		var bugTrackerApp = angular.module("bugTrackerApp", []);
 		bugTrackerApp.controller("bugsController", function($scope){
 			$scope.bugs = [
-				"Server communication failure",
-				"User actions not recognized",
-				"Unable to add a new bug"
+				{ title : "Server communication failure", isClosed : false},
+				{ title : "User actions not recognized", isClosed : false},
+				{ title : "Unable to add a new bug", isClosed : false},
 			];
 			
 			$scope.newBug = '';
 			
 			$scope.addNew = function(){
-				$scope.bugs.push($scope.newBug);
+				var newBugObj = {
+					title : $scope.newBug,
+					isClosed : false
+				};
+				$scope.bugs.push(newBugObj);
 				$scope.newBug = '';
+			};
+
+			$scope.toggle = function(bug){
+				bug.isClosed = !bug.isClosed;
 			};
 		});
 
@@ -100,8 +108,10 @@
 		</section>
 		<section class="list">
 			<ol>
-				<li ng-repeat="bug in bugs">
-					<span class="bugname">{{bug}}</span>
+				<li ng-repeat="bug in bugs track by $index">
+					<span class="bugname" ng-click="toggle(bug)" ng-class="{closed : bug.isClosed}">
+						{{bug.title}}
+					</span>
 				</li>
 			</ol>
 			<input type="button" value="Remove Closed">
