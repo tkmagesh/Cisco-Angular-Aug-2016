@@ -39,9 +39,9 @@
 		=========
 		1. Add a new bug - done
 		2. List the bugs - done
-		3. Toggle the 'closed' status of a bug
-		4. Remove closed bugs
-		5. Display statistics (# of closed bugs / # of total bugs)
+		3. Toggle the 'closed' status of a bug - done
+		4. Remove closed bugs - done
+		5. Display statistics (# of closed bugs / # of total bugs) - done
 		6. Search the bugs
 		7. Sort the bugs
 		8. Improvise the bug display
@@ -54,27 +54,57 @@
 	<script src="angular.js"></script>
 	<script>
 		var bugTrackerApp = angular.module("bugTrackerApp", []);
-		bugTrackerApp.controller("bugsController", function($scope){
+
+		function createBugOperations(){
+			var maxBugId = 0;
+			return {
+				toggle : function(bug){
+					bug.isClosed = !bug.isClosed
+				},
+				createNew : function(newBugName){
+					return {
+						id : ++maxBugId,
+						title : newBugName || '[Default bug]',
+						isClosed : false
+					}
+				}
+			}
+		}
+
+		bugTrackerApp.value('bugOperations', createBugOperations());
+
+		bugTrackerApp.controller("bugsController", function($scope, bugOperations){
 			$scope.bugs = [
-				{ title : "Server communication failure", isClosed : false},
-				{ title : "User actions not recognized", isClosed : false},
-				{ title : "Unable to add a new bug", isClosed : false},
+				bugOperations.createNew("Server communication failure"),
+				bugOperations.createNew("User actions not recognized"),
+				bugOperations.createNew("Unable to add a new bug"),
 			];
 			
 			$scope.newBug = '';
 			
 			$scope.addNew = function(){
-				var newBugObj = {
-					title : $scope.newBug,
-					isClosed : false
-				};
+				var newBugObj = bugOperations.createNew($scope.newBug);
 				$scope.bugs.push(newBugObj);
 				$scope.newBug = '';
 			};
 
 			$scope.toggle = function(bug){
-				bug.isClosed = !bug.isClosed;
+				bugOperations.toggle(bug);
 			};
+
+			$scope.getClosedCount = function(){
+				var result = 0;
+				for(var i = 0; i < $scope.bugs.length; i++)
+					if ($scope.bugs[i].isClosed)
+						++result;
+				return result;
+			};
+
+			$scope.removeClosed = function(){
+				for(var i = $scope.bugs.length-1; i >= 0 ; i--)
+					if ($scope.bugs[i].isClosed)
+						$scope.bugs.splice(i,1);
+			}
 		});
 
 	</script>
@@ -84,7 +114,7 @@
 	<hr>
 	<section class="content" ng-controller="bugsController">
 		<section class="stats">
-			<span class="closed">3</span>
+			<span class="closed">{{getClosedCount()}}</span>
 			<span> / </span>
 			<span>{{bugs.length}}</span>
 		</section>
@@ -112,9 +142,10 @@
 					<span class="bugname" ng-click="toggle(bug)" ng-class="{closed : bug.isClosed}">
 						{{bug.title}}
 					</span>
+					<div>[{{bug.id}}]</div>
 				</li>
 			</ol>
-			<input type="button" value="Remove Closed">
+			<input type="button" value="Remove Closed" ng-click="removeClosed()">
 		</section>
 	</section>
 </body>
