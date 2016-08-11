@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Salary Calculator</title>
+	<style>
+		.field{
+			margin-bottom: 10px;
+		}
+		#divResult{
+			color : red;
+			font-size: 22pt;
+		}
+		label{
+			display: block;
+		}
+
+	</style>
+	<script src="jquery-3.1.0.js"></script>
+	<script src="angular.js"></script>
+	<script>
+		String.prototype.toInt = function(){
+			return parseInt(this,10);
+		};
+
+		//Model
+		function SalaryCalculator(){
+			this.basic = 0;
+			this.hra = 0;
+			this.da = 0;
+			this.tax = 0;
+			this.salary = 0;
+		}
+		SalaryCalculator.prototype.calculate = function(){
+			var gross = this.basic + this.hra + this.da;
+			var net = gross * ((100-this.tax)/100);
+			this.salary = net;
+		}
+
+		function MathCalculator(){
+			this.number1 = 0;
+			this.number2 = 0;
+			this.result = 0;
+		}
+		MathCalculator.prototype.add = function(){
+			this.result = this.number1 + this.number2;
+		};
+		MathCalculator.prototype.subtract = function(){
+			this.result = this.number1 - this.number2;
+		};
+		MathCalculator.prototype.multiply = function(){
+			this.result = this.number1 * this.number2;
+		};
+		MathCalculator.prototype.divide = function(){
+			this.result = this.number1 / this.number2;
+		};
+
+		
+
+		
+		var myApp = angular.module("myApp", []);
+
+		myApp.run(function($rootScope){
+			$rootScope.currentDate = new Date();
+		})
+		myApp.controller("salaryCalculatorController", function(){
+				this.calculator = new SalaryCalculator();
+			});
+		myApp.controller("mathCalculatorController", function($scope){
+			$scope.calculator = new MathCalculator();
+			$scope.operation = '';
+			$scope.calculate = function(){
+				$scope.calculator[$scope.operation]();
+			}
+		})
+		
+
+	</script>
+</head>
+<body ng-app="myApp">
+	<h1>Salary Calculator</h1>
+	<hr>
+	<section class="content" ng-controller="salaryCalculatorController as salCalCtrl">
+		<div class="field">
+			<label for="">Basic :</label>
+			<input type="number" name="" id="txtBasic" ng-model="salCalCtrl.calculator.basic">
+		</div>
+		<div class="field">
+			<label for="">HRA :</label>
+			<input type="number" name="" id="txtHra" ng-model="salCalCtrl.calculator.hra">
+		</div>
+		<div class="field">
+			<label for="">DA :</label>
+			<input type="number" name="" id="txtDa" ng-model="salCalCtrl.calculator.da">
+		</div>
+		<div class="field">
+			<label for="">Tax :</label>
+			<input type="range" name="" id="rangeTax" min="0" max="30" ng-model="salCalCtrl.calculator.tax">
+			<span id="spanTax" ng-bind="salCalCtrl.calculator.tax">[Tax %]</span>
+		</div>
+		<div class="field">
+			<input type="button" value="Calculate" id="btnCalculate" ng-click="salCalCtrl.calculator.calculate()">
+		</div>
+		<div class="field">
+			<div id="divResult" ng-bind="salCalCtrl.calculator.salary">[Salary]</div>
+		</div>
+		<div ng-bind="currentDate"></div>
+	</section>
+	<hr>
+	<h1>Math Calculator</h1>
+	<div class="content" ng-controller="mathCalculatorController">
+		<input type="number" ng-model="calculator.number1">
+		<select ng-model="operation" >
+			<option value="add">Add</option>
+			<option value="subtract">Subtract</option>
+			<option value="multiply">Multiply</option>
+			<option value="divide">Divide</option>
+		</select>
+		<input type="number" ng-model="calculator.number2">
+		<input type="button" value="Calculate" ng-click="calculate()">
+		<div ng-bind="calculator.result">[Result]</div>
+		<div ng-bind="currentDate"></div>
+	</div>
+
+</body>
+</html>
