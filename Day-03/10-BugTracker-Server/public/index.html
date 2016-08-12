@@ -31,7 +31,14 @@
 			padding: 5px;
 			border-radius : 5px;
 		}
-
+		.message{
+			border : 1px double black;
+			background-color: black;
+			color : yellow;
+			font-weight: bold;
+			border-radius: 4px;
+			padding: 4px;
+		}
 	</style>
 	<script>
 		/*
@@ -73,6 +80,49 @@
 		
 
 		var bugTrackerApp = angular.module("bugTrackerApp", ["utils", "ngRoute"]);
+
+		bugTrackerApp.directive('appTimer', function($interval){
+			return function($scope, $element, $attr){
+				
+				$interval(function(){
+					$element.html(new Date().toString());	
+				},1000)
+				
+			}
+		});
+
+		bugTrackerApp.run(function($rootScope){
+			$rootScope.message = '';
+			$rootScope.setMessage = function(msg){
+				$rootScope.message = msg;
+			}
+			$rootScope.clearMessage = function(){
+				$rootScope.message = '';
+			};
+		});
+
+		bugTrackerApp.directive('appMessage', function($timeout){
+			return {
+				restrict : 'E',
+				scope : {
+					msg : '@',
+					clearMessage : '&',
+					displayTimeout : '@'
+				},
+				/*template : '<div ng-show="message" class="message"><div>{{message}}</div><input type="button" value="Close" ng-click="clearMessage()"></div>',*/
+				templateUrl : 'message-template.html',
+				link : function($scope, $element, $attr){
+					$scope.$watch('msg', function(newValue){
+						if (newValue !== ''){
+							$timeout(function(){
+								$scope.msg = '';
+								$scope.clearMessage();
+							},$scope.displayTimeout);
+						}
+					})
+				}
+			}
+		})
 
 		bugTrackerApp.config(function($routeProvider){
 			$routeProvider
@@ -194,6 +244,7 @@
 
 			$scope.toggle = function(bug){
 				bugService.toggle(bug)
+				$scope.setMessage('A bug status is toggled');
 			};
 
 			
@@ -204,6 +255,7 @@
 						bugService.remove($scope.bugs[i]);
 						$scope.bugs.splice(i,1);
 					}
+				$scope.setMessage('Zero or more closed bugs are removed!');
 			}
 		});
 
@@ -245,6 +297,8 @@
 </head>
 <body ng-app="bugTrackerApp">
 	<h1>Bug Tracker</h1>
+	<!-- <i><app-timer></app-timer></i> -->
+	<app-message msg={{message}} clear-message="clearMessage()" display-timeout="5000"></app-message>
 	<hr>
 	<ng-view></ng-view>
 </body>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script src="jquery-3.1.0.js"></script>
+	<script src="angular.js"></script>
+	<script>
+		angular
+			.module("myApp", [])
+			/*.directive('helloWorld', function(){
+				return function($scope, $element, $attr){
+					$element.html('<h1>Welcome to angular</h1>');
+					$element.click(function(){
+						$element.html('');
+					});
+				};
+			});*/
+			.controller('parentController', function($scope){
+				$scope.message = 'This message is from the parentController';
+				$scope.setMessage = function(msg){
+					$scope.message = msg;
+				};
+				$scope.onDirectiveAttended = function(){
+					console.log('reacting to the message from the directive');
+				};
+			})
+			.directive('helloWorld', function(){
+				return {
+					restrict : 'E',
+					template : '<h1>{{msg}}</h1>',
+					scope : {
+						//msg : '@'
+						msg : '=',
+						onattended : '&'
+					},
+					link : function($scope, $element, $attr){	
+
+						$element.click(function(){
+							//$element.html('');
+							$scope.$apply(function(){
+								$scope.msg = '';
+								$scope.onattended();
+							});
+						});
+					}
+				}
+			})
+	</script>
+</head>
+<body ng-app="myApp">
+	<div ng-controller="parentController">
+		<hello-world msg="message" onattended="onDirectiveAttended()"></hello-world>
+	</div>
+	<!-- <div hello-world></div> -->
+	
+</body>
+</html>
