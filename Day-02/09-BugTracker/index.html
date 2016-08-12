@@ -45,7 +45,7 @@
 		6. Search the bugs - done
 		7. Sort the bugs - done
 		8. Improvise the bug display - done
-		9. Persist the bugs in the localStorage
+		9. Persist the bugs in the localStorage - done
 			window.localStorage
 			===================
 				- key/value store
@@ -60,11 +60,12 @@
 					* clear()
 					* length
 
-		10. Display 'createdAt' for every bug
+		10. Display 'createdAt' for every bug - done
 		11. Persist the bugs in the server
 		12. Make the bugs accessible using a unique url
 		*/
 	</script>
+	<script src="moment.js"></script>
 	<script src="angular.js"></script>
 	<script>
 		var utils = angular.module("utils", []);
@@ -75,6 +76,12 @@
 				trimLength = trimLength || defaultTrimLength;
 				return data.length > trimLength ? data.substr(0,trimLength) + '...' : data;
 			}
+		});
+
+		utils.filter("elapsed", function(){
+			return function(data){
+				return moment(data).fromNow();
+			};
 		});
 
 		var bugTrackerApp = angular.module("bugTrackerApp", ["utils"]);
@@ -91,7 +98,8 @@
 					return {
 						id : id,
 						title : newBugName || defaultBugName,
-						isClosed : false
+						isClosed : false,
+						createdAt : new Date()
 					}
 				}
 			}
@@ -247,7 +255,7 @@
 					<span class="bugname" ng-click="toggle(bug)" ng-class="{closed : bug.isClosed}">
 						{{bug.title | trimText}}
 					</span>
-					<div>[{{bug.id}}]</div>
+					<div>[{{bug.createdAt | elapsed}}]</div>
 				</li>
 			</ol>
 			<input type="button" value="Remove Closed" ng-click="removeClosed()">
