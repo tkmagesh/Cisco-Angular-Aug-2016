@@ -105,87 +105,26 @@
 			}
 		});
 
-		/*bugTrackerApp.factory("bugStorage", function(bugOperations){
-			var maxBugId = 0,
-				storage = window.localStorage;
+		
 
-			function getAllBugs(){
-				var result = [];
-				for(var i=0; i< storage.length;i++){
-					var dataAsStr = storage.getItem(storage.key(i));
-					var bug = angular.fromJson(dataAsStr);
-					result.push(bug);
-					maxBugId = maxBugId > bug.id ? maxBugId : bug.id;
-				}
-				return result;
-			}
-			function addNewBug(bugName){
-				var newBug = bugOperations.createNew(++maxBugId, bugName);
-				saveBug(newBug);
-				return newBug;
-			}
-			function saveBug(bug){
-				storage.setItem(bug.id, angular.toJson(bug));
-			}
-			function toggleBug(bug){
-				bugOperations.toggle(bug);
-				saveBug(bug);
-			}
-			function removeBug(bug){
-				storage.removeItem(bug.id);
-			}
-			return {
-				getAll : getAllBugs,
-				addNew : addNewBug,
-				toggle : toggleBug,
-				remove : removeBug
-			}
-		})*/
-		bugTrackerApp.service("bugStorage", function(bugOperations){
-			var maxBugId = 0,
-				storage = window.localStorage;
-
-			this.getAll = function getAllBugs(){
-				var result = [];
-				for(var i=0; i< storage.length;i++){
-					var dataAsStr = storage.getItem(storage.key(i));
-					var bug = angular.fromJson(dataAsStr);
-					result.push(bug);
-					maxBugId = maxBugId > bug.id ? maxBugId : bug.id;
-				}
-				return result;
-			}
-			this.addNew = function addNewBug(bugName){
-				var newBug = bugOperations.createNew(++maxBugId, bugName);
-				saveBug(newBug);
-				return newBug;
-			}
-			function saveBug(bug){
-				storage.setItem(bug.id, angular.toJson(bug));
-			}
-			this.toggle = function toggleBug(bug){
-				bugOperations.toggle(bug);
-				saveBug(bug);
-			}
-			this.remove = function removeBug(bug){
-				storage.removeItem(bug.id);
-			}
+		bugTrackerApp.controller("bugsController", function($scope, bugOperations, $http){
+			$scope.bugs = [];
 			
-		})
-
-		bugTrackerApp.controller("bugsController", function($scope, bugStorage){
-			$scope.bugs = bugStorage.getAll();
+			var getPromise = $http.get('http://localhost:3000/bugs');
+			getPromise.then(function(response){
+				$scope.bugs = response.data;
+			});
 			
 			$scope.newBug = '';
 			
 			$scope.addNew = function(){
-				var newBugObj = bugStorage.addNew($scope.newBug);
+				var newBugObj = bugOperations.createNew(0, $scope.newBug);
 				$scope.bugs.push(newBugObj);
 				$scope.newBug = '';
 			};
 
 			$scope.toggle = function(bug){
-				bugStorage.toggle(bug);
+				bugOperations.toggle(bug)
 			};
 
 			
@@ -193,7 +132,6 @@
 			$scope.removeClosed = function(){
 				for(var i = $scope.bugs.length-1; i >= 0 ; i--)
 					if ($scope.bugs[i].isClosed){
-						bugStorage.remove($scope.bugs[i]);
 						$scope.bugs.splice(i,1);
 					}
 			}
